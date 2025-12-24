@@ -35,5 +35,32 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### OS ###
 .DS_Store
-    
+Thumbs.db
+
+### Environment & Secrets ###
+.env
+.env.*
+*.env
+application-local.yaml
+application-local.yml
+application-prod.yaml
+application-prod.yml
+**/secrets/
+*.pem
+*.key
+
+### Logs ###
+*.log
+logs/
+
+### Claude Code ###
+.claude/
+
+### Temp files ###
+*.tmp
+*.bak
+*.swp
+*~

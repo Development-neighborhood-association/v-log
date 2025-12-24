@@ -1,20 +1,18 @@
-package com.likelion.vlog.entity.entity;
+package com.likelion.vlog.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Getter @Setter
+@Getter
 @Table(name = "comments")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Comment {
+public class Comment extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comment_id")
@@ -40,7 +38,27 @@ public class Comment {
 
     private String content;
 
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
-}
+    // 댓글 생성 메서드
+    public static Comment create(User user, Post post, String content) {
+        Comment comment = new Comment();
+        comment.user = user;
+        comment.post = post;
+        comment.content = content;
+        return comment;
+    }
 
+    // 대댓글 생성 메서드
+    public static Comment createReply(User user, Post post, Comment parent, String content) {
+        Comment reply = new Comment();
+        reply.user = user;
+        reply.post = post;
+        reply.parent = parent;
+        reply.content = content;
+        return reply;
+    }
+
+    // 댓글 수정 메서드
+    public void update(String content) {
+        this.content = content;
+    }
+}

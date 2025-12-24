@@ -1,18 +1,15 @@
-package com.likelion.vlog.entity.entity;
+package com.likelion.vlog.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter
+@Getter
 @Table(name = "likes")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Like {
+public class Like extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "like_id")
@@ -26,6 +23,11 @@ public class Like {
     @JoinColumn(name = "post_id")
     private Post post;
 
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
+    // 좋아요 생성 메서드
+    public static Like create(User user, Post post) {
+        Like like = new Like();
+        like.user = user;
+        like.post = post;
+        return like;
+    }
 }

@@ -1,19 +1,22 @@
 spring:
   application:
     name: vlog
-
-datasource:
-  url: jdbc:mysql://localhost:13306/jpashop
-  username: root
-  password:
-  driver-class-name: com.mysql.cj.jdbc.Driver
-
-jpa:
-  hibernate:
-    ddl-auto: update
+  datasource:
+    url: jdbc:mysql://localhost:13306/vlog
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
 
-logging.level:
-  org.hibernate.SQL: debug
+logging:
+  level:
+    org.hibernate.SQL: debug

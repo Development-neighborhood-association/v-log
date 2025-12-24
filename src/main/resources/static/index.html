@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V-Log 테스트</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        h1 { color: #333; }
+        .card { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card h2 { margin-top: 0; color: #555; font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        textarea { height: 100px; resize: vertical; }
+        button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-right: 5px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        button:hover { opacity: 0.9; }
+        .post-item { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 4px; background: #fafafa; }
+        .post-item h3 { margin: 0 0 10px 0; color: #333; }
+        .post-item p { margin: 0 0 10px 0; color: #666; }
+        .post-item .meta { font-size: 12px; color: #999; }
+        .tag { display: inline-block; background: #e9ecef; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-right: 5px; }
+        .status { padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #cce5ff; color: #004085; }
+        #loginStatus { font-weight: bold; }
+        .logged-in { color: #28a745; }
+        .logged-out { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>V-Log 게시글 테스트</h1>
+
+    <!-- 로그인 섹션 -->
+    <div class="card">
+        <h2>1. 데모 로그인</h2>
+        <p>상태: <span id="loginStatus" class="logged-out">로그인 안됨</span></p>
+        <input type="number" id="userId" placeholder="User ID (예: 1)" value="1">
+        <button class="btn-primary" onclick="demoLogin()">데모 로그인</button>
+        <button class="btn-secondary" onclick="demoLogout()">로그아웃</button>
+    </div>
+
+    <!-- 게시글 작성 -->
+    <div class="card">
+        <h2>2. 게시글 작성</h2>
+        <input type="text" id="postTitle" placeholder="제목">
+        <textarea id="postContent" placeholder="내용"></textarea>
+        <input type="text" id="postTags" placeholder="태그 (쉼표로 구분, 예: Spring, Java)">
+        <button class="btn-success" onclick="createPost()">작성하기</button>
+    </div>
+
+    <!-- 게시글 목록 -->
+    <div class="card">
+        <h2>3. 게시글 목록</h2>
+        <button class="btn-primary" onclick="loadPosts()">새로고침</button>
+        <div id="postList" style="margin-top: 15px;"></div>
+    </div>
+
+    <!-- 게시글 상세/수정 -->
+    <div class="card" id="postDetail" style="display: none;">
+        <h2>4. 게시글 상세</h2>
+        <div id="detailContent"></div>
+        <hr>
+        <h3>수정하기</h3>
+        <input type="hidden" id="editPostId">
+        <input type="text" id="editTitle" placeholder="제목">
+        <textarea id="editContent" placeholder="내용"></textarea>
+        <input type="text" id="editTags" placeholder="태그">
+        <button class="btn-primary" onclick="updatePost()">수정</button>
+        <button class="btn-danger" onclick="deletePost()">삭제</button>
+        <button class="btn-secondary" onclick="closeDetail()">닫기</button>
+    </div>
+
+    <!-- 상태 메시지 -->
+    <div id="statusMessage"></div>
+
+    <script>
+        const API_BASE = '/api/v1';
+
+        function showStatus(message, type = 'info') {
+            const el = document.getElementById('statusMessage');
+            el.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => el.innerHTML = '', 3000);
+        }
+
+        async function demoLogin() {
+            const userId = document.getElementById('userId').value;
+            try {
+                const res = await fetch(`${API_BASE}/auth/demo-login?userId=${userId}`, { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('loginStatus').textContent = `${data.nickname} (ID: ${data.userId})`;
+                    document.getElementById('loginStatus').className = 'logged-in';
+                    showStatus('로그인 성공!', 'success');
+                } else {
+                    showStatus(data.message || '로그인 실패', 'error');
+                }
+            } catch (e) {
+                showStatus('로그인 오류: ' + e.message, 'error');
+            }
+        }
+
+        async function demoLogout() {
+            try {
+                await fetch(`${API_BASE}/auth/demo-logout`, { method: 'POST' });
+                document.getElementById('loginStatus').textContent = '로그인 안됨';
+                document.getElementById('loginStatus').className = 'logged-out';
+                showStatus('로그아웃 완료', 'info');
+            } catch (e) {
+                showStatus('로그아웃 오류', 'error');
+            }
+        }
+
+        async function createPost() {
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            const tagsStr = document.getElementById('postTags').value;
+            const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
+
+            try {
+                const res = await fetch(`${API_BASE}/posts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content, tags })
+                });
+                if (res.ok) {
+                    showStatus('게시글 작성 완료!', 'success');
+                    document.getElementById('postTitle').value = '';
+                    document.getElementById('postContent').value = '';
+                    document.getElementById('postTags').value = '';
+                    loadPosts();
+                } else if (res.status === 401) {
+                    showStatus('로그인이 필요합니다.', 'error');
+                } else {
+                    const data = await res.json();
+                    showStatus(data.message || '작성 실패', 'error');
+                }
+            } catch (e) {
+                showStatus('작성 오류: ' + e.message, 'error');
+            }
+        }
+
+        async function loadPosts() {
+            try {
+                const res = await fetch(`${API_BASE}/posts`);
+                const data = await res.json();
+                const list = document.getElementById('postList');
+
+                if (data.content.length === 0) {
+                    list.innerHTML = '<p style="color: #999;">게시글이 없습니다.</p>';
+                    return;
+                }
+
+                list.innerHTML = data.content.map(post => `
+                    <div class="post-item">
+                        <h3>${escapeHtml(post.title)}</h3>
+                        <p>${escapeHtml(post.summary || '')}</p>
+                        <div class="meta">
+                            작성자: ${escapeHtml(post.author.nickname)} |
+                            좋아요: ${post.likeCount} | 댓글: ${post.commentCount}
+                        </div>
+                        <div style="margin-top: 5px;">
+                            ${(post.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+                        </div>
+                        <button class="btn-secondary" style="margin-top: 10px;" onclick="viewPost(${post.postId})">상세보기</button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                showStatus('목록 로드 오류: ' + e.message, 'error');
+            }
+        }
+
+        async function viewPost(postId) {
+            try {
+                const res = await fetch(`${API_BASE}/posts/${postId}`);
+                const post = await res.json();
+
+                document.getElementById('detailContent').innerHTML = `
+                    <h3>${escapeHtml(post.title)}</h3>
+                    <p>${escapeHtml(post.content)}</p>
+                    <div class="meta">
+                        작성자: ${escapeHtml(post.author.nickname)} |
+                        좋아요: ${post.likeCount} |
+                        작성일: ${new Date(post.createdAt).toLocaleString()}
+                    </div>
+                    <div style="margin-top: 5px;">
+                        ${(post.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
+                    </div>
+                `;
+
+                document.getElementById('editPostId').value = post.postId;
+                document.getElementById('editTitle').value = post.title;
+                document.getElementById('editContent').value = post.content;
+                document.getElementById('editTags').value = (post.tags || []).join(', ');
+                document.getElementById('postDetail').style.display = 'block';
+            } catch (e) {
+                showStatus('상세 조회 오류: ' + e.message, 'error');
+            }
+        }
+
+        async function updatePost() {
+            const postId = document.getElementById('editPostId').value;
+            const title = document.getElementById('editTitle').value;
+            const content = document.getElementById('editContent').value;
+            const tagsStr = document.getElementById('editTags').value;
+            const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(t => t) : [];
+
+            try {
+                const res = await fetch(`${API_BASE}/posts/${postId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, content, tags })
+                });
+                if (res.ok) {
+                    showStatus('수정 완료!', 'success');
+                    loadPosts();
+                    viewPost(postId);
+                } else if (res.status === 401) {
+                    showStatus('로그인이 필요합니다.', 'error');
+                } else if (res.status === 403) {
+                    showStatus('수정 권한이 없습니다.', 'error');
+                } else {
+                    showStatus('수정 실패', 'error');
+                }
+            } catch (e) {
+                showStatus('수정 오류: ' + e.message, 'error');
+            }
+        }
+
+        async function deletePost() {
+            const postId = document.getElementById('editPostId').value;
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/posts/${postId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showStatus('삭제 완료!', 'success');
+                    closeDetail();
+                    loadPosts();
+                } else if (res.status === 401) {
+                    showStatus('로그인이 필요합니다.', 'error');
+                } else if (res.status === 403) {
+                    showStatus('삭제 권한이 없습니다.', 'error');
+                } else {
+                    showStatus('삭제 실패', 'error');
+                }
+            } catch (e) {
+                showStatus('삭제 오류: ' + e.message, 'error');
+            }
+        }
+
+        function closeDetail() {
+            document.getElementById('postDetail').style.display = 'none';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 페이지 로드 시 게시글 목록 불러오기
+        loadPosts();
+    </script>
+</body>
+</html>

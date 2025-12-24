@@ -1,18 +1,15 @@
-package com.likelion.vlog.entity.entity;
+package com.likelion.vlog.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter
+@Getter
 @Table(name = "follows")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Follow {
+public class Follow extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "follow_id")
@@ -30,6 +27,11 @@ public class Follow {
     private User following;
 
 
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
+    // 팔로우 생성 메서드
+    public static Follow create(User follower, User following) {
+        Follow follow = new Follow();
+        follow.follower = follower;
+        follow.following = following;
+        return follow;
+    }
 }

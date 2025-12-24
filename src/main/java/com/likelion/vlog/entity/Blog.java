@@ -1,18 +1,15 @@
-package com.likelion.vlog.entity.entity;
+package com.likelion.vlog.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter
+@Getter
 @Table(name = "blogs")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Blog {
+public class Blog extends BaseEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "blog_id")
@@ -22,12 +19,5 @@ public class Blog {
     @JoinColumn(name = "user_id")
     private User user;
 
-//    @OneToMany(mappedBy = "blog")
-//    private List<Post> posts = new ArrayList<>();
-
-    private Long user_id;
     private String title;
-
-    private LocalDateTime created_at;
-    private LocalDateTime updated_at;
 }

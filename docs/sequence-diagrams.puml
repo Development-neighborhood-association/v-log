@@ -1,0 +1,312 @@
+@startuml post-create
+title 게시글 작성 (POST /api/v1/posts)
+
+actor Client
+participant "SecurityFilter" as Security
+participant "PostController" as Controller
+participant "PostService" as Service
+participant "UserRepository" as UserRepo
+participant "BlogRepository" as BlogRepo
+participant "PostRepository" as PostRepo
+participant "TagRepository" as TagRepo
+participant "TagMapRepository" as TagMapRepo
+
+Client -> Security: POST /api/v1/posts\n(with session cookie)
+Security -> Security: 인증 확인\n(SecurityContext)
+
+alt 인증 실패
+    Security --> Client: 401 Unauthorized
+else 인증 성공
+    Security -> Controller: @AuthenticationPrincipal\nCustomUserDetails
+
+    Controller -> Service: createPost(request, userId)
+
+    Service -> UserRepo: findById(userId)
+    UserRepo --> Service: User
+
+    Service -> BlogRepo: findByUser(user)
+    BlogRepo --> Service: Blog
+
+    Service -> Service: Post.create(title, content, blog)
+    Service -> PostRepo: save(post)
+    PostRepo --> Service: Post (with ID)
+
+    loop 각 태그에 대해
+        Service -> TagRepo: findByTitle(tagName)
+        alt 태그 존재
+            TagRepo --> Service: Tag
+        else 태그 없음
+            Service -> TagRepo: save(Tag.create(tagName))
+            TagRepo --> Service: Tag (new)
+        end
+        Service -> TagMapRepo: save(TagMap.create(post, tag))
+    end
+
+    Service --> Controller: PostResponse.of(post, tags)
+    Controller --> Client: 201 Created\nPostResponse
+end
+
+@enduml
+
+@startuml post-list
+title 게시글 목록 조회 (GET /api/v1/posts)
+
+actor Client
+participant "PostController" as Controller
+participant "PostService" as Service
+participant "PostRepository" as PostRepo
+participant "LikeRepository" as LikeRepo
+participant "CommentRepository" as CommentRepo
+
+Client -> Controller: GET /api/v1/posts\n?page=0&size=10&tag=Spring
+
+Controller -> Service: getPosts(tag, blogId, pageable)
+
+alt tag != null && blogId != null
+    Service -> PostRepo: findAllByTagNameAndBlogId()
+else tag != null
+    Service -> PostRepo: findAllByTagName()
+else blogId != null
+    Service -> PostRepo: findAllByBlogId()
+else 필터 없음
+    Service -> PostRepo: findAll(pageable)
+end
+
+PostRepo --> Service: Page<Post>
+
+loop 각 Post에 대해
+    Service -> Service: getTagNames(post)
+    Service -> LikeRepo: countByPost(post)
+    LikeRepo --> Service: likeCount
+    Service -> CommentRepo: countByPost(post)
+    CommentRepo --> Service: commentCount
+    Service -> Service: PostListResponse.of(post, tags, likeCount, commentCount)
+end
+
+Service --> Controller: PageResponse<PostListResponse>
+Controller --> Client: 200 OK\nPageResponse
+
+@enduml
+
+@startuml post-detail
+title 게시글 상세 조회 (GET /api/v1/posts/{postId})
+
+actor Client
+participant "PostController" as Controller
+participant "PostService" as Service
+participant "PostRepository" as PostRepo
+participant "UserRepository" as UserRepo
+participant "LikeRepository" as LikeRepo
+participant "CommentRepository" as CommentRepo
+
+Client -> Controller: GET /api/v1/posts/1\n(with optional session)
+
+Controller -> Service: getPost(postId, userId)
+
+Service -> PostRepo: findById(postId)
+
+alt 게시글 없음
+    PostRepo --> Service: Optional.empty()
+    Service --> Controller: IllegalArgumentException
+    Controller --> Client: 404 Not Found
+else 게시글 존재
+    PostRepo --> Service: Post
+
+    Service -> Service: getTagNames(post)
+    Service -> LikeRepo: countByPost(post)
+    LikeRepo --> Service: likeCount
+
+    alt userId != null (로그인 상태)
+        Service -> UserRepo: findById(userId)
+        UserRepo --> Service: User
+        Service -> LikeRepo: existsByUserAndPost(user, post)
+        LikeRepo --> Service: isLiked (true/false)
+    else 비로그인
+        Service -> Service: isLiked = false
+    end
+
+    Service -> CommentRepo: findAllByPostAndParentIsNull(post)
+    CommentRepo --> Service: List<Comment>
+
+    Service -> Service: comments.map(CommentResponse::from)
+
+    Service --> Controller: PostResponse.of(post, tags, likeCount, isLiked, comments)
+    Controller --> Client: 200 OK\nPostResponse
+end
+
+@enduml
+
+@startuml post-update
+title 게시글 수정 (PUT /api/v1/posts/{postId})
+
+actor Client
+participant "SecurityFilter" as Security
+participant "PostController" as Controller
+participant "PostService" as Service
+participant "PostRepository" as PostRepo
+participant "TagMapRepository" as TagMapRepo
+participant "TagRepository" as TagRepo
+
+Client -> Security: PUT /api/v1/posts/1\n(with session cookie)
+Security -> Security: 인증 확인
+
+alt 인증 실패
+    Security --> Client: 401 Unauthorized
+else 인증 성공
+    Security -> Controller: @AuthenticationPrincipal\nCustomUserDetails
+
+    Controller -> Service: updatePost(postId, request, userId)
+
+    Service -> PostRepo: findById(postId)
+
+    alt 게시글 없음
+        PostRepo --> Service: Optional.empty()
+        Service --> Controller: IllegalArgumentException
+        Controller --> Client: 404 Not Found
+    else 게시글 존재
+        PostRepo --> Service: Post
+
+        Service -> Service: post.getBlog().getUser().getId()
+
+        alt userId != 작성자ID
+            Service --> Controller: IllegalArgumentException\n"수정 권한 없음"
+            Controller --> Client: 403 Forbidden
+        else 권한 있음
+            Service -> Service: post.setTitle()\npost.setContent()\npost.setUpdatedAt()
+
+            Service -> TagMapRepo: deleteAllByPost(post)
+
+            loop 새 태그들에 대해
+                Service -> TagRepo: findByTitle() or save()
+                Service -> TagMapRepo: save(TagMap.create())
+            end
+
+            Service --> Controller: PostResponse.of(post, tags)
+            Controller --> Client: 200 OK\nPostResponse
+        end
+    end
+end
+
+@enduml
+
+@startuml post-delete
+title 게시글 삭제 (DELETE /api/v1/posts/{postId})
+
+actor Client
+participant "SecurityFilter" as Security
+participant "PostController" as Controller
+participant "PostService" as Service
+participant "PostRepository" as PostRepo
+participant "TagMapRepository" as TagMapRepo
+
+Client -> Security: DELETE /api/v1/posts/1\n(with session cookie)
+Security -> Security: 인증 확인
+
+alt 인증 실패
+    Security --> Client: 401 Unauthorized
+else 인증 성공
+    Security -> Controller: @AuthenticationPrincipal\nCustomUserDetails
+
+    Controller -> Service: deletePost(postId, userId)
+
+    Service -> PostRepo: findById(postId)
+
+    alt 게시글 없음
+        Service --> Controller: IllegalArgumentException
+        Controller --> Client: 404 Not Found
+    else 게시글 존재
+        PostRepo --> Service: Post
+
+        alt userId != 작성자ID
+            Service --> Controller: IllegalArgumentException\n"삭제 권한 없음"
+            Controller --> Client: 403 Forbidden
+        else 권한 있음
+            Service -> TagMapRepo: deleteAllByPost(post)
+            Service -> PostRepo: delete(post)
+
+            Service --> Controller: void
+            Controller --> Client: 204 No Content
+        end
+    end
+end
+
+@enduml
+
+@startuml class-diagram
+title V-Log 클래스 다이어그램 (Entity 관계)
+
+package "Entity" {
+    class User {
+        -Long id
+        -String email
+        -String password
+        -String nickname
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+    }
+
+    class Blog {
+        -Long id
+        -String title
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+    }
+
+    class Post {
+        -Long id
+        -String title
+        -String content
+        -int viewCount
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        +{static} create(title, content, blog): Post
+    }
+
+    class Comment {
+        -Long id
+        -String content
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+    }
+
+    class Tag {
+        -Long id
+        -String title
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        +{static} create(title): Tag
+    }
+
+    class TagMap {
+        -Long id
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+        +{static} create(post, tag): TagMap
+    }
+
+    class Like {
+        -Long id
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+    }
+
+    class Follow {
+        -Long id
+        -LocalDateTime createdAt
+        -LocalDateTime updatedAt
+    }
+}
+
+User "1" -- "1" Blog : has >
+Blog "1" -- "*" Post : contains >
+Post "1" -- "*" TagMap : has >
+Tag "1" -- "*" TagMap : mapped by <
+Post "1" -- "*" Comment : has >
+User "1" -- "*" Comment : writes >
+Comment "1" -- "*" Comment : parent-child >
+User "1" -- "*" Like : likes >
+Post "1" -- "*" Like : liked by <
+User "1" -- "*" Follow : follower >
+User "1" -- "*" Follow : following >
+
+@enduml
