@@ -62,7 +62,7 @@ public class PostService {
 
     /**
      * 게시글 상세 조회
-     * - 좋아요/댓글은 Sprint 2에서 구현 예정
+     * - 좋아요/댓글은 Sprint 3에서 구현 예정
      */
     public PostResponse getPost(Long postId) {
         Post post = postRepository.findById(postId)

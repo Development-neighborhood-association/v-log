@@ -20,12 +20,10 @@ public class Follow extends BaseEntity {
     @JoinColumn(name = "follower_id")
     private User follower;
 
-
     //팔로우 대상
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "following_id")
     private User following;
-
 
     // 팔로우 생성 메서드
     public static Follow create(User follower, User following) {
