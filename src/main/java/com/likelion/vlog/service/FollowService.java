@@ -85,7 +85,8 @@ public class FollowService {
      * 팔로잉 조회
      */
     public Page<FollowingGetResponse> getFollowings(Long userId, Pageable pageable) {
-        User user = getUser(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> NotFoundException.user(userId));
 
         return followRepository.findByFollower(user, pageable)
                 .map(follow ->
@@ -100,7 +101,8 @@ public class FollowService {
      * 팔로워 조회
      */
     public Page<FollowerGetResponse> getFollowers(Long userId, Pageable pageable) {
-        User user = getUser(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> NotFoundException.user(userId));
 
         return followRepository.findByFollowing(user, pageable)
                 .map(follow -> {
@@ -110,12 +112,5 @@ public class FollowService {
 
                     return FollowerGetResponse.of(follower, isFollowing);
                 });
-    }
-
-    private User getUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-
-        return user;
     }
 }

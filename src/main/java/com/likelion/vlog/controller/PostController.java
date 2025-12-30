@@ -1,5 +1,6 @@
 package com.likelion.vlog.controller;
 
+import com.likelion.vlog.dto.common.ApiResponse;
 import com.likelion.vlog.dto.posts.PostCreateRequest;
 import com.likelion.vlog.dto.posts.PostGetRequest;
 import com.likelion.vlog.dto.posts.PostUpdateRequest;
@@ -9,9 +10,6 @@ import com.likelion.vlog.dto.posts.response.PostResponse;
 import com.likelion.vlog.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,10 +35,10 @@ public class PostController {
      * - 정렬: 기본값 created_at DESC (최신순)
      */
     @GetMapping
-    public ResponseEntity<PageResponse<PostListResponse>> getPosts(@ModelAttribute PostGetRequest request) {
+    public ResponseEntity<ApiResponse<PageResponse<PostListResponse>>> getPosts(@ModelAttribute PostGetRequest request) {
 
         PageResponse<PostListResponse> response = postService.getPosts(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("조회 성공",response));
     }
 
     /**
@@ -48,9 +46,9 @@ public class PostController {
      * - 인증 불필요 (비로그인도 조회 가능)
      */
     @GetMapping("/{postId}")
-    public ResponseEntity<PostResponse> getPost(@PathVariable Long postId) {
+    public ResponseEntity<ApiResponse<PostResponse>> getPost(@PathVariable Long postId) {
         PostResponse response = postService.getPost(postId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("상세 조회 성공",(response)));
     }
 
     /**
@@ -59,12 +57,12 @@ public class PostController {
      * - 성공 시 201 Created
      */
     @PostMapping
-    public ResponseEntity<PostResponse> createPost(
+    public ResponseEntity<ApiResponse<PostResponse>> createPost(
             @Valid @RequestBody PostCreateRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
         PostResponse response = postService.createPost(request, userDetails.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("작성 완료", response));
     }
 
     /**
