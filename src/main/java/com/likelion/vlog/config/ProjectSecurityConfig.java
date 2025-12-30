@@ -35,53 +35,57 @@ public class ProjectSecurityConfig {
         // TODO: 프론트엔드 연결 시 CORS 설정 필요 (allowedOrigins, allowCredentials 등)
         http.cors(withDefaults());
         http.authorizeHttpRequests(auth -> auth
-                        // 인증 X
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/tags/users/**", //사용자 조회
-                                "/api/v1/tags/**", //태그 조회
-                                "/api/v1/posts/**" //게시글 조회
-                        ).permitAll()
+                // -------------------------------------------------
+                // 1) 인증 X (Public)
+                // -------------------------------------------------
+                .requestMatchers(HttpMethod.POST,
+                        "/api/v1/auth/signup",
+                        "/api/v1/auth/login"
+                ).permitAll()
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/tags/auth/signup", //회원가입
-                                "/api/v1/tags/auth/login" //로그인
-                        ).permitAll()
+                .requestMatchers(HttpMethod.GET,
+                        "/api/v1/users/*",      // 사용자 프로필 조회
+                        "/api/v1/posts",        // 전체 게시글 조회
+                        "/api/v1/posts/*",      // 게시글 상세 조회
+                        "/api/v1/tags/*"        // 태그 이름으로 조회
+                ).permitAll()
 
-        //-------------------------------------------------------------------------------------
+                // -------------------------------------------------
+                // 2) 인증 O (Authenticated)
+                // -------------------------------------------------
+                .requestMatchers(HttpMethod.POST,
+                        "/api/v1/auth/logout",
 
-                        // 인증 O
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/v1/users/**/followers", //팔로워 조회
-                                "/api/v1/users/**/followings" //팔로잉 조회
-                        ).authenticated()
+                        "/api/v1/posts",                         // 게시글 작성
+                        "/api/v1/posts/*/comments",              // 댓글 작성
+                        "/api/v1/posts/*/comments/*/replies",    // 답글 생성
+                        "/api/v1/posts/*/like",                  // 좋아요
 
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/v1/tags/auth/logout", //로그아웃
-                                "/api/v1/posts", //게시글 생성
-                                "/api/v1/posts/**/comments", //댓글 생성
-                                "api/v1/posts/**/comments/**/replies", //대댓글 생성
-                                "/api/v1/users/**/follow" //팔로우
-                        ).authenticated()
+                        "/api/v1/users/*/follow"                 // 팔로우
+                ).authenticated()
 
-                        .requestMatchers(HttpMethod.PUT,
-                                "/api/v1/tags/users/**", //사용자 정보 수정
-                                "/api/v1/posts/**", //게시글 수정
-                                "api/v1/posts/**/comments/**", //댓글 수정
-                                "api/v1/posts/**/comments/**/replies/**", //대댓글 수정
-                                "/posts/{post_id}/like" //좋아요
-                        ).authenticated()
+                .requestMatchers(HttpMethod.PUT,
+                        "/api/v1/users/*",                       // 사용자 정보 수정 (본인 검증은 별도)
+                        "/api/v1/posts/*",                       // 게시글 수정 (작성자 검증은 별도)
+                        "/api/v1/posts/*/comments/*",            // 댓글 수정 (작성자 검증은 별도)
+                        "/api/v1/posts/*/comments/*/replies/*"   // 답글 수정 (작성자 검증은 별도)
+                ).authenticated()
 
-                        .requestMatchers(HttpMethod.DELETE,
-                                "/api/v1/tags/users/**", //사용자 삭제
-                                "/api/v1/posts/**", //게시글 삭제
-                                "api/v1/posts/**/comments/**", //댓글 삭제
-                                "api/v1/posts/**/comments/**/replies/**", //대댓글 삭제
-                                "/posts/{post_id}/like", //좋아요 취소
-                                "/api/v1/users/**/follow" //팔로우 취소
-                        ).authenticated()
+                .requestMatchers(HttpMethod.DELETE,
+                        "/api/v1/users/*",                       // 회원 탈퇴 (본인 검증은 별도)
+                        "/api/v1/posts/*",                       // 게시글 삭제 (작성자 검증은 별도)
+                        "/api/v1/posts/*/comments/*",            // 댓글 삭제 (작성자 검증은 별도)
+                        "/api/v1/posts/*/comments/*/replies/*",  // 답글 삭제 (작성자 검증은 별도)
 
-                        .anyRequest().denyAll()
-                );
+                        "/api/v1/posts/*/like",                  // 좋아요 취소
+                        "/api/v1/users/*/follow"                 // 언팔로우
+                ).authenticated()
+
+                // -------------------------------------------------
+                // 3) 그 외 전부 차단
+                // -------------------------------------------------
+                .anyRequest().denyAll()
+        );
 
         // SecurityContextRepository 연결 -> Spring Security가 자동으로 세션 관리
         http.securityContext(context -> context
