@@ -51,9 +51,6 @@ class PostControllerTest {
     @MockBean
     private AuthService authService;
 
-    @MockBean
-    private org.springframework.data.jpa.mapping.JpaMetamodelMappingContext jpaMetamodelMappingContext;
-
     @Nested
     @DisplayName("게시글 상세 조회 API")
     class GetPost {

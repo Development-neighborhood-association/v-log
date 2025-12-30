@@ -48,9 +48,6 @@ class CommentControllerTest {
     @MockBean
     private AuthService authService;
 
-    @MockBean
-    private org.springframework.data.jpa.mapping.JpaMetamodelMappingContext jpaMetamodelMappingContext;
-
     @Nested
     @DisplayName("댓글 목록 조회 API")
     class GetComments {
