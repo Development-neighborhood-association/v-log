@@ -7,7 +7,15 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "likes")
+@Table(
+        name = "likes",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "unique_user_post",
+                        columnNames = {"user_id", "post_id"}
+                )
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Like extends BaseEntity {
 
@@ -16,15 +24,15 @@ public class Like extends BaseEntity {
     private Long id;
 
     @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
     // 좋아요 생성 메서드
-    public static Like create(User user, Post post) {
+    public static Like from(User user, Post post) {
         Like like = new Like();
         like.user = user;
         like.post = post;

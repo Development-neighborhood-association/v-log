@@ -12,13 +12,17 @@ import java.util.Optional;
 
 public interface LikeRepository extends JpaRepository<Like, Long> {
 
-    int countByPost(Post post);
+    // 좋아요 존재 여부 확인
+    boolean existsByUserIdAndPostId(Long userId, Long postId);
 
-    boolean existsByUserAndPost(User user, Post post);
+    // 게시글 좋아요 수 조회
+    Long countByPostId(Long postId);
 
-    Optional<Like> findByUserAndPost(User user, Post post);
+    // 좋아요 엔티티 찾기
+    Optional<Like> findByUserIdAndPostId(Long userId, Long postId);
 
     // N+1 해결: 여러 Post의 좋아요 수를 한번에 조회
     @Query("SELECT l.post.id, COUNT(l) FROM Like l WHERE l.post IN :posts GROUP BY l.post.id")
     List<Object[]> countByPosts(@Param("posts") List<Post> posts);
+
 }
