@@ -2,12 +2,9 @@ spring:
   application:
     name: vlog
   datasource:
-    #PR시 데이터베이스 수정
-    #url: jdbc:mysql://localhost:3306/vlog
-    url: jdbc:mysql://localhost:3307/liondb
+    url: jdbc:mysql://localhost:3306/vlog
     username: root
-#    password: 1111
-    password: root1234
+    password: 1111
 
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:

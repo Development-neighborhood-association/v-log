@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LikeResponse {
     private Long likeCount;
-    private Boolean idLike;
+    private Boolean checkLike;
 }

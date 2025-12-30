@@ -32,7 +32,7 @@ public class Like extends BaseEntity {
     private Post post;
 
     // 좋아요 생성 메서드
-    public static Like create(User user, Post post) {
+    public static Like from(User user, Post post) {
         Like like = new Like();
         like.user = user;
         like.post = post;

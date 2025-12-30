@@ -33,7 +33,7 @@ public class LikeService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        Like like = Like.create(user, post);
+        Like like = Like.from(user, post);
         likeRepository.save(like);
 
         Long count = likeRepository.countByPostId(postId);
@@ -61,7 +61,7 @@ public class LikeService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Long count = likeRepository.countByPostId(postId);
-        boolean isLiked = likeRepository.existsByUserIdAndPostId(user.getId(), postId);
-        return new LikeResponse(count, isLiked);
+        boolean checkLike = likeRepository.existsByUserIdAndPostId(user.getId(), postId);
+        return new LikeResponse(count, checkLike);
     }
 }
