@@ -38,14 +38,14 @@ public class ProjectSecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                         // 인증 X
                         .requestMatchers(HttpMethod.GET,
-                                "/api/v1/tags/users/**", //사용자 조회
+                                "/api/v1/users/**", //사용자 조회
                                 "/api/v1/tags/**", //태그 조회
                                 "/api/v1/posts/**" //게시글 조회
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.POST,
-                                "/api/v1/tags/auth/signup", //회원가입
-                                "/api/v1/tags/auth/login" //로그인
+                                "/api/v1/auth/signup", //회원가입
+                                "/api/v1/auth/login" //로그인
                         ).permitAll()
 
                 .requestMatchers(HttpMethod.GET,
@@ -53,7 +53,9 @@ public class ProjectSecurityConfig {
                         "/api/v1/posts",        // 전체 게시글 조회
                         "/api/v1/posts/*",      // 게시글 상세 조회
                         "/api/v1/tags/*",        // 태그 이름으로 조회
-                        "/api/v1/posts/*/like"   //좋아요 조회
+                        "/api/v1/posts/*/like",   //좋아요 조회
+                        "/api/v1/users/*/followers", // 팔로워 조회
+                        "/api/v1/users/*/followings" // 팔로잉 조회
                 ).permitAll()
 
                 // -------------------------------------------------
