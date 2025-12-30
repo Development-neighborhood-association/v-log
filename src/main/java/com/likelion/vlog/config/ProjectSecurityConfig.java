@@ -53,7 +53,9 @@ public class ProjectSecurityConfig {
                         "/api/v1/posts",        // 전체 게시글 조회
                         "/api/v1/posts/*",      // 게시글 상세 조회
                         "/api/v1/tags/*",        // 태그 이름으로 조회
-                        "/api/v1/posts/*/like"   //좋아요 조회
+                        "/api/v1/posts/*/like",   //좋아요 조회
+                        "/api/v1/users/*/followers", // 팔로워 조회
+                        "/api/v1/users/*/followings" // 팔로잉 조회
                 ).permitAll()
 
                 // -------------------------------------------------
