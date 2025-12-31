@@ -1,4 +1,4 @@
-package com.likelion.vlog.dto.posts.response;
+package com.likelion.vlog.dto.posts;
 
 import com.likelion.vlog.entity.Comment;
 import lombok.Builder;

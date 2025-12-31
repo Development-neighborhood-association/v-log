@@ -6,9 +6,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * PUT /api/v1/posts/{postId} 요청 객체
+ */
 @Getter
 @NoArgsConstructor
-public class PostUpdateRequest {
+public class PostUpdatePutRequest {
 
     @NotBlank(message = "제목은 필수입니다.")
     private String title;

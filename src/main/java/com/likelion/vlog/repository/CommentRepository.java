@@ -17,4 +17,13 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     // N+1 해결: 여러 Post의 댓글 수를 한번에 조회
     @Query("SELECT c.post.id, COUNT(c) FROM Comment c WHERE c.post IN :posts GROUP BY c.post.id")
     List<Object[]> countByPosts(@Param("posts") List<Post> posts);
+
+    // 게시글의 댓글과 대댓글을 함께 조회 (N+1 해결)
+    @Query("SELECT DISTINCT c FROM Comment c " +
+            "LEFT JOIN FETCH c.user " +
+            "LEFT JOIN FETCH c.children ch " +
+            "LEFT JOIN FETCH ch.user " +
+            "WHERE c.post = :post AND c.parent IS NULL " +
+            "ORDER BY c.createdAt ASC")
+    List<Comment> findAllByPostWithChildren(@Param("post") Post post);
 }

@@ -1,4 +1,4 @@
-package com.likelion.vlog.dto.posts.response;
+package com.likelion.vlog.dto.posts;
 
 import lombok.Builder;
 import lombok.Getter;
