@@ -19,15 +19,26 @@ docker-compose down                # MySQL 중지
 
 ## 환경 설정
 
+### 사전 요구사항
+- Java 21
+- MySQL 8.0 (또는 Docker)
+
+### 데이터베이스 설정
+**옵션 A: 로컬 MySQL 사용**
+- MySQL에서 `vlog` 데이터베이스 생성
+- `application.yaml` 설정 확인
+
+**옵션 B: Docker 사용**
+```bash
+docker-compose up -d  # MySQL 시작 (port 13306)
+# application.yaml 포트를 13306으로 변경 필요
+```
+
 **application.yaml** 기본 설정:
 - DB URL: `jdbc:mysql://localhost:3306/vlog`
 - DB User: `root` / Password: `1111`
 - Hibernate DDL: `update` (스키마 자동 업데이트, 데이터 유지)
 - SQL 로깅 활성화 (format_sql, bind parameter trace)
-
-**데이터베이스 설정**:
-- 개발 환경: **로컬 MySQL 사용** (port 3306, database: vlog)
-- docker-compose.yml은 참고용 (사용 시 application.yaml 포트를 13306으로 변경 필요)
 
 ## 기술 스택
 
@@ -157,10 +168,37 @@ DTOs는 도메인별로 하위 패키지 구성:
 - `dto/comments/`: 댓글 관련
 - `dto/common/`: 공통 응답 (ApiResponse, ErrorResponse, PageResponse 등)
 
-**DTO 네이밍 컨벤션**:
+**DTO 네이밍 컨벤션**: (상세: `docs/v-log-dto-convention.md`)
 - Request: `{Action}{HttpMethod}Request` (예: `CommentCreatePostRequest`)
+  - auth 범위에서는 메서드 생략 허용 (`LoginRequest`, `SignupRequest`)
 - Response: `{Resource}{HttpMethod}Response` (예: `PostGetResponse`)
-- 공통 응답 래퍼: `ApiResponse.success()`, `ApiResponse.error()`
+- 정적 팩토리 메서드:
+  - `from()`: 타입 변환/매핑 시 (예: `UserGetResponse.from(User user)`)
+  - `of()`: 값 조립 시 (예: `UserGetResponse.of(Long id, String nickname)`)
+- DTO 클래스 상단에 엔드포인트 주석 필수:
+  ```java
+  /**
+   * GET /users/{id} 응답 객체
+   */
+  public class UserGetResponse { ... }
+  ```
+
+**API 응답 표준**:
+- 모든 컨트롤러는 `ResponseEntity<ApiResponse<T>>` 형태로 반환
+- 성공: `ApiResponse.success(message, data)` 또는 `ApiResponse.success(message)`
+- 실패: `ApiResponse.error(message)`
+- 예시:
+  ```java
+  // 데이터 있음
+  return ResponseEntity.ok(ApiResponse.success("조회 성공", data));
+
+  // 데이터 없음
+  return ResponseEntity.ok(ApiResponse.success("로그아웃 성공"));
+
+  // 생성
+  return ResponseEntity.status(HttpStatus.CREATED)
+      .body(ApiResponse.success("생성 성공", data));
+  ```
 
 ## 구현 현황
 
