@@ -1,10 +1,11 @@
 # V-Log
 
-Spring Boot 기반 블로그 플랫폼 REST API 서버
+Spring Boot + React 기반 블로그 플랫폼
 
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.9-green)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
+![React](https://img.shields.io/badge/React-18.2-blue)
 
 ## 기술 스택
 
@@ -17,13 +18,26 @@ Spring Boot 기반 블로그 플랫폼 REST API 서버
 | Build | Gradle |
 | Test | JUnit 5, Mockito |
 
+## Frontend
+
+|분류|기술|
+|---|---|
+|Framework|React 18.2|
+|Language|TypeScript|
+|Build|Vite|
+|Styling|Tailwind CSS|
+
+
+
+
 ## 주요 기능
 
 - **회원 관리**: 회원가입, 로그인/로그아웃, 프로필 수정
 - **게시글**: CRUD, 해시태그, 페이징/필터링
 - **댓글/대댓글**: 계층형 댓글 (1-depth)
 - **좋아요**: 게시글 좋아요/취소
-- **팔로우**: 사용자 팔로우/언팔로우 (예정)
+- **팔로우**: 사용자 팔로우/언팔로우
+- **태그** : 태그 생성/검색 분류
 
 ## 시작하기
 
@@ -31,6 +45,7 @@ Spring Boot 기반 블로그 플랫폼 REST API 서버
 
 - Java 21
 - MySQL 8.0 (또는 Docker)
+- Node.js 18+
 
 ### 설치 및 실행
 
@@ -51,6 +66,7 @@ docker-compose up -d
 ./gradlew build
 ./gradlew bootRun
 ```
+프론트엔드 상세 가이드: [front-end/v-log-front/README.md](front-end/v-log-front/README.md)
 
 ### 환경 설정
 
@@ -64,7 +80,7 @@ spring:
     password: 1111
 ```
 
-## 프로젝트 구조
+## Backend 프로젝트 구조
 
 ```
 com.likelion.vlog
@@ -75,13 +91,28 @@ com.likelion.vlog
 ├── entity/              # JPA 엔티티
 ├── dto/                 # 요청/응답 DTO
 │   ├── auth/
-│   ├── posts/
-│   ├── comments/
 │   ├── like/
-│   └── common/          # ApiResponse
+│   ├── comments/
+│   ├── common/          # API Response
+│   ├── follows/
+│   ├── like/
+│   ├── posts/
+│   ├── tags/
+│   └── users     
+├── enums/               # Enum 클래스
 └── exception/           # 커스텀 예외
-```
 
+```
+### Frontend 프로젝트 구조
+```
+front-end/v-log-front/
+├── src/
+│   ├── api/             # API 클라이언트
+│   ├── components/      # React 컴포넌트
+│   ├── types/           # TypeScript 타입
+│   └── styles/          # 스타일 파일
+└── vite.config.ts
+```
 ### Entity 관계
 
 ```
@@ -103,6 +134,14 @@ User (1) ─── Blog (1) ─── Post (*) ─── TagMap (*) ─── Ta
 | POST | `/api/v1/auth/signup` | 회원가입 | X |
 | POST | `/api/v1/auth/login` | 로그인 | X |
 | POST | `/api/v1/auth/logout` | 로그아웃 | O |
+
+### 사용자
+|Method|Endpoint|설명|인증|
+|---|---|---|---|
+|GET|`/api/v1/users/{id}`|프로필 조회|X|
+|PUT|`/api/v1/users/{id}`|프로필 수정|O (본인)|
+|DELETE|`/api/v1/users/{id}`|회원 탈퇴|O (본인)|
+
 
 ### 게시글
 
@@ -133,6 +172,21 @@ User (1) ─── Blog (1) ─── Post (*) ─── TagMap (*) ─── Ta
 | GET | `/api/v1/posts/{postId}/like` | 조회 | O |
 | POST | `/api/v1/posts/{postId}/like` | 좋아요 | O |
 | DELETE | `/api/v1/posts/{postId}/like` | 취소 | O |
+
+### 팔로우
+|Method|Endpoint|설명|인증|
+|---|---|---|---|
+|POST|`/api/v1/users/{userId}/follows`|팔로우|O|
+|DELETE|`/api/v1/users/{userId}/follows`|언팔로우|O|
+|GET|`/api/v1/users/{userId}/followers`|팔로워 목록|X|
+|GET|`/api/v1/users/{userId}/followings`|팔로잉 목록|X|
+
+### 태그
+
+|Method|Endpoint|설명|인증|
+|---|---|---|---|
+|GET|`/api/v1/tags/{title}`|태그 정보 조회|X|
+
 
 > 상세 API 문서: [docs/API.md](docs/API.md)
 
