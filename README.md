@@ -1,33 +1,29 @@
-# V-Log
+# V-Log Backend
 
-Spring Boot + React 기반 블로그 플랫폼
+Spring Boot 기반 블로그 플랫폼 REST API 서버
 
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.9-green)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue)
-![React](https://img.shields.io/badge/React-18.2-blue)
+
+### Related Repositories
+
+> **Frontend**: [v-log-ui-deploy](https://github.com/hanskk0725/v-log-ui-deploy)
+
+**프론트엔드 실행 및 UI 관련 내용은 해당 레포지토리 README 참고**
+
 
 ## 기술 스택
 
-| 분류 | 기술 |
-|------|------|
-| Backend | Spring Boot 3.5.9, Java 21 |
-| Database | MySQL 8.0 |
-| ORM | Spring Data JPA |
-| Security | Spring Security (세션 기반 인증) |
-| Build | Gradle |
-| Test | JUnit 5, Mockito |
 
-## Frontend
-
-|분류|기술|
-|---|---|
-|Framework|React 18.2|
-|Language|TypeScript|
-|Build|Vite|
-|Styling|Tailwind CSS|
-
-
+| 분류        | 기술 |
+|-----------|------|
+| Framework | Spring Boot 3.5.9 |
+| Language | Java 21 |
+| Database  | MySQL 8.0 |
+| ORM       | Spring Data JPA |
+| Security  | Spring Security (세션 기반 인증) |
+| Build     | Gradle |
 
 
 ## 주요 기능
@@ -51,7 +47,7 @@ Spring Boot + React 기반 블로그 플랫폼
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/your-username/v-log.git
+git clone https://github.com/Development-neighborhood-association/v-log.git
 cd v-log
 
 # 2. 데이터베이스 설정 (택1)
@@ -66,7 +62,7 @@ docker-compose up -d
 ./gradlew build
 ./gradlew bootRun
 ```
-프론트엔드 상세 가이드: [front-end/v-log-front/README.md](front-end/v-log-front/README.md)
+
 
 ### 환경 설정
 
@@ -91,7 +87,6 @@ com.likelion.vlog
 ├── entity/              # JPA 엔티티
 ├── dto/                 # 요청/응답 DTO
 │   ├── auth/
-│   ├── like/
 │   ├── comments/
 │   ├── common/          # API Response
 │   ├── follows/
@@ -102,16 +97,8 @@ com.likelion.vlog
 ├── enums/               # Enum 클래스
 └── exception/           # 커스텀 예외
 
-```
-### Frontend 프로젝트 구조
-```
-front-end/v-log-front/
-├── src/
-│   ├── api/             # API 클라이언트
-│   ├── components/      # React 컴포넌트
-│   ├── types/           # TypeScript 타입
-│   └── styles/          # 스타일 파일
-└── vite.config.ts
+
+
 ```
 ### Entity 관계
 
@@ -227,19 +214,8 @@ return ResponseEntity.ok(ApiResponse.success("메시지", data));
 
 > 상세 컨벤션: [docs/v-log-dto-convention.md](docs/v-log-dto-convention.md)
 
-### 테스트 실행
+## 문서
 
-```bash
-# 전체 테스트
-./gradlew test
-
-# 특정 테스트 클래스
-./gradlew test --tests PostControllerTest
-
-# 테스트 리포트
-open build/reports/tests/test/index.html
-```
-
-## 라이선스
-
-MIT License
+- [API 명세서](docs/API.md)
+- [DTO 컨벤션](docs/v-log-dto-convention.md)
+- [Frontend 레포지토리](https://github.com/hanskk0725/v-log-ui-deploy)
