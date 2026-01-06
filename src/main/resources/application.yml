@@ -4,4 +4,7 @@ spring:
   # profiles.active removed - must be explicitly set via SPRING_PROFILES_ACTIVE environment variable
 
 server:
+  servlet:
+    session:
+      timeout: 1d
   port: 8080
