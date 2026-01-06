@@ -26,7 +26,7 @@ public class PostGetRequest {
     private SearchFiled search = SearchFiled.TITLE;
     private TagMode tagMode = TagMode.OR;
     private SortField sort = SortField.CREATED_AT;
-    private boolean asc = false;
+    private boolean asc;
 
     public void normalize() {
         if (tag == null) tag = List.of();
