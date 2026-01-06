@@ -2,7 +2,7 @@ spring:
   application:
     name: vlog
   datasource:
-    url: jdbc:mysql://localhost:13306/vlog
+    url: jdbc:mysql://localhost:13306/vlog?serverTimezone=Asia/Seoul
     username: root
     password:
 
